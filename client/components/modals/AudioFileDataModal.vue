@@ -34,7 +34,7 @@
               <p class="w-32 text-black-50">
                 {{ $strings.LabelChapters }}
               </p>
-              <p>{{ audioFile.chapters?.length || 0 }}</p>
+              <p>{{ (audioFile.chapters && audioFile.chapters.length) || 0 }}</p>
             </div>
             <div v-if="audioFile.embeddedCoverArt" class="flex mb-1">
               <p class="w-32 text-black-50">

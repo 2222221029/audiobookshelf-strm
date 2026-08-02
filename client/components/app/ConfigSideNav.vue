@@ -1,18 +1,19 @@
 <template>
   <div role="toolbar" aria-orientation="vertical" aria-label="Config Sidebar">
-    <div role="navigation" aria-label="Config Navigation" class="w-44 fixed left-0 top-16 bg-bg/100 md:bg-bg/70 shadow-lg border-r border-white/5 py-3 transform transition-transform mb-12 overflow-y-auto" :class="wrapperClass + ' ' + (streamLibraryItem ? 'h-[calc(100%-270px)]' : 'h-[calc(100%-110px)]')" v-click-outside="clickOutside">
+    <div role="navigation" aria-label="Config Navigation" class="config-nav w-56 fixed left-0 top-16 bg-bg/100 md:bg-bg/70 shadow-lg border-r border-white/5 py-3 transform transition-transform mb-12 overflow-y-auto" :class="wrapperClass + ' ' + (streamLibraryItem ? 'h-[calc(100%-270px)]' : 'h-[calc(100%-110px)]')" v-click-outside="clickOutside">
       <div v-show="isMobilePortrait" class="flex items-center justify-end pb-2 px-4 mb-1" @click="closeDrawer">
         <span class="material-symbols text-2xl">arrow_back</span>
       </div>
 
-      <nuxt-link v-for="route in configRoutes" :key="route.id" :to="route.path" class="w-full px-3 h-12 border-b border-primary/30 flex items-center cursor-pointer relative" :class="routeName === route.id ? 'bg-primary/70' : 'hover:bg-primary/30'">
+      <nuxt-link v-for="route in configRoutes" :key="route.id" :to="route.path" class="config-nav-link w-full px-3 h-12 flex items-center cursor-pointer relative" :class="routeName === route.id ? 'bg-primary/70' : 'hover:bg-primary/30'">
+        <span class="material-symbols mr-3">{{ route.icon || 'settings' }}</span>
         <p class="leading-4">{{ route.title }}</p>
-        <div v-show="routeName === route.iod" class="h-full w-0.5 bg-yellow-400 absolute top-0 left-0" />
+        <div v-show="routeName === route.id" class="h-6 w-0.5 rounded-full bg-accent absolute top-3 left-0" />
       </nuxt-link>
 
     </div>
 
-    <div class="w-44 h-12 px-4 border-t bg-bg border-black/20 fixed left-0 flex flex-col justify-center" :class="wrapperClass" :style="{ bottom: streamLibraryItem ? '160px' : '0px' }">
+    <div class="w-56 h-12 px-4 border-t bg-bg border-black/20 fixed left-0 flex flex-col justify-center" :class="wrapperClass" :style="{ bottom: streamLibraryItem ? '160px' : '0px' }">
       <div class="flex items-center justify-between">
         <p class="font-mono text-sm">v{{ $config.version }}</p>
 
@@ -44,6 +45,7 @@ export default {
           {
             id: 'config-stats',
             title: this.$strings.HeaderYourStats,
+            icon: 'query_stats',
             path: '/config/stats'
           }
         ]
@@ -52,61 +54,79 @@ export default {
         {
           id: 'config',
           title: this.$strings.HeaderSettings,
+          icon: 'dashboard',
           path: '/config'
         },
         {
           id: 'config-libraries',
           title: this.$strings.HeaderLibraries,
+          icon: 'library_books',
           path: '/config/libraries'
+        },
+        {
+          id: 'config-strm',
+          title: 'STRM',
+          icon: 'cloud_sync',
+          path: '/config/strm'
         },
         {
           id: 'config-users',
           title: this.$strings.HeaderUsers,
+          icon: 'group',
           path: '/config/users'
         },
         {
           id: 'config-api-keys',
           title: this.$strings.HeaderApiKeys,
+          icon: 'key',
           path: '/config/api-keys'
         },
         {
           id: 'config-sessions',
           title: this.$strings.HeaderListeningSessions,
+          icon: 'headphones',
           path: '/config/sessions'
         },
         {
           id: 'config-backups',
           title: this.$strings.HeaderBackups,
+          icon: 'cloud_upload',
           path: '/config/backups'
         },
         {
           id: 'config-log',
           title: this.$strings.HeaderLogs,
+          icon: 'article',
           path: '/config/log'
         },
         {
           id: 'config-notifications',
           title: this.$strings.HeaderNotifications,
+          icon: 'notifications',
           path: '/config/notifications'
         },
         {
           id: 'config-email',
           title: this.$strings.HeaderEmail,
+          icon: 'mail',
           path: '/config/email'
         },
         {
           id: 'config-item-metadata-utils',
           title: this.$strings.HeaderItemMetadataUtils,
+          icon: 'build',
           path: '/config/item-metadata-utils'
         },
         {
           id: 'config-rss-feeds',
           title: this.$strings.HeaderRSSFeeds,
+          icon: 'rss_feed',
           path: '/config/rss-feeds'
         },
         {
           id: 'config-authentication',
           title: this.$strings.HeaderAuthentication,
+          icon: 'shield',
           path: '/config/authentication'
         }
       ]
@@ -129,7 +149,7 @@ export default {
     wrapperClass() {
       var classes = []
       if (this.drawerOpen) classes.push('translate-x-0')
-      else classes.push('-translate-x-44')
+      else classes.push('-translate-x-56')
       if (this.isMobilePortrait) classes.push('z-50')
       else classes.push('z-40')
       return classes.join(' ')

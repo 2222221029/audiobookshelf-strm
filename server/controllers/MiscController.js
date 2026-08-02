@@ -14,6 +14,7 @@ const { sanitizeFilename } = require('../utils/fileUtils')
 
 const TaskManager = require('../managers/TaskManager')
 const adminStats = require('../utils/queries/adminStats')
+const strmUtils = require('../utils/strmUtils')
 
 /**
  * @typedef RequestUserObject
@@ -768,6 +769,77 @@ class MiscController {
     res.json({
       currentDailyLogs: Logger.logManager.getMostRecentCurrentDailyLogs()
     })
+  }
+
+  /**
+   * GET: /api/strm/settings
+   * Return persistent STRM settings, runtime cache information and recent STRM logs.
+   *
+   * @param {RequestWithUser} req
+   * @param {Response} res
+   */
+  async getStrmSettings(req, res) {
+    if (!req.user.isAdminOrUp) return res.sendStatus(403)
+
+    const settings = strmUtils.loadStrmSettings()
+    const logs = Logger.logManager?.getMostRecentCurrentDailyLogs() || []
+    const recentLogs = logs
+      .filter((entry) => String(entry.message || '').includes('[STRM'))
+      .slice(-20)
+      .reverse()
+
+    res.json({
+      settings,
+      mappings: strmUtils.parseDirectUrlMap(),
+      cache: strmUtils.getStrmCacheStatus(),
+      recentLogs,
+      configFile: Path.join(global.ConfigPath, 'strm-settings.json')
+    })
+  }
+
+  /**
+   * PATCH: /api/strm/settings
+   * Persist and immediately apply STRM settings.
+   *
+   * @param {RequestWithUser} req
+   * @param {Response} res
+   */
+  async updateStrmSettings(req, res) {
+    if (!req.user.isAdminOrUp) return res.sendStatus(403)
+    if (!req.body || typeof req.body !== 'object') return res.status(400).send('Invalid STRM settings')
+
+    const nextSettings = { ...strmUtils.getStrmSettings(), ...req.body }
+    const directUrlMap = String(nextSettings.directUrlMap || '')
+    for (const entry of directUrlMap.split(',').map((item) => item.trim()).filter(Boolean)) {
+      const separator = entry.indexOf('=')
+      if (separator < 1) return res.status(400).send('Each direct URL mapping must use /path=http://host/path')
+      try {
+        const url = new URL(entry.slice(separator + 1).trim())
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported protocol')
+      } catch (error) {
+        return res.status(400).send('Direct URL mapping contains an invalid HTTP/HTTPS URL')
+      }
+    }
+
+    try {
+      const settings = await strmUtils.saveStrmSettings(nextSettings)
+      res.json({ settings, mappings: strmUtils.parseDirectUrlMap(), cache: strmUtils.getStrmCacheStatus() })
+    } catch (error) {
+      Logger.error('[STRM] Failed to update settings: ' + error.message)
+      res.status(500).send(error.message)
+    }
+  }
+
+  /**
+   * POST: /api/strm/cache/purge
+   *
+   * @param {RequestWithUser} req
+   * @param {Response} res
+   */
+  async purgeStrmCache(req, res) {
+    if (!req.user.isAdminOrUp) return res.sendStatus(403)
+    const purged = strmUtils.clearStrmRemoteUrlCache()
+    res.json({ purged, cache: strmUtils.getStrmCacheStatus() })
   }
 }
 module.exports = new MiscController()

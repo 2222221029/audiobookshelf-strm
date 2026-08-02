@@ -41,7 +41,7 @@
               <!-- duration -->
               <p v-if="episode.durationSeconds && !isNaN(episode.durationSeconds)" class="text-xs text-gray-300 min-w-28">{{ $strings.LabelDuration }}: {{ $elapsedPretty(episode.durationSeconds) }}</p>
               <!-- size -->
-              <p v-if="episode.enclosure?.length && !isNaN(episode.enclosure.length) && Number(episode.enclosure.length) > 0" class="text-xs text-gray-300">{{ $strings.LabelSize }}: {{ $bytesPretty(Number(episode.enclosure.length)) }}</p>
+              <p v-if="episode.enclosure && episode.enclosure.length && !isNaN(episode.enclosure.length) && Number(episode.enclosure.length) > 0" class="text-xs text-gray-300">{{ $strings.LabelSize }}: {{ $bytesPretty(Number(episode.enclosure.length)) }}</p>
             </div>
           </div>
         </div>

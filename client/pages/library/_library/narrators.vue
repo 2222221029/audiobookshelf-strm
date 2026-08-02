@@ -1,8 +1,12 @@
 <template>
   <div class="page relative" :class="streamLibraryItem ? 'streaming' : ''">
     <app-book-shelf-toolbar page="narrators" is-home />
-    <div id="bookshelf" class="w-full h-full px-1 py-4 md:p-8 relative overflow-y-auto">
-      <table class="tracksTable max-w-2xl mx-auto">
+    <div id="bookshelf" class="narrators-page w-full h-full px-1 py-4 md:p-8 relative overflow-y-auto">
+      <div class="ui-page-header max-w-4xl mx-auto">
+        <div><h1 class="ui-page-title">{{ $strings.LabelNarrators }}</h1><p class="ui-page-subtitle">管理演播者名称并查看关联书籍。</p></div>
+        <span class="ui-chip active">{{ narrators.length }} 位</span>
+      </div>
+      <table class="tracksTable max-w-4xl mx-auto">
         <tr>
           <th class="text-left">{{ $strings.LabelName }}</th>
           <th class="text-center w-24">{{ $strings.LabelBooks }}</th>
@@ -10,7 +14,7 @@
         </tr>
         <tr v-for="narrator in narrators" :key="narrator.id">
           <td>
-            <nuxt-link v-if="selectedNarrator?.id !== narrator.id" :to="`/library/${currentLibraryId}/bookshelf?filter=narrators.${narrator.id}`" class="text-sm md:text-base text-gray-100 hover:underline">{{ narrator.name }}</nuxt-link>
+            <nuxt-link v-if="(selectedNarrator && selectedNarrator.id) !== narrator.id" :to="`/library/${currentLibraryId}/bookshelf?filter=narrators.${narrator.id}`" class="text-sm md:text-base text-gray-100 hover:underline">{{ narrator.name }}</nuxt-link>
             <form v-else @submit.prevent="saveClick">
               <ui-text-input v-model="newNarratorName" />
             </form>
@@ -20,7 +24,7 @@
           </td>
           <td v-if="userCanUpdate" class="w-40">
             <div class="flex justify-end items-center h-10">
-              <template v-if="selectedNarrator?.id !== narrator.id">
+              <template v-if="(selectedNarrator && selectedNarrator.id) !== narrator.id">
                 <ui-icon-btn icon="edit" borderless :size="8" icon-font-size="1.1rem" class="mx-1" @click="editClick(narrator)" />
                 <ui-icon-btn icon="delete" borderless :size="8" icon-font-size="1.1rem" @click="removeClick(narrator)" />
               </template>

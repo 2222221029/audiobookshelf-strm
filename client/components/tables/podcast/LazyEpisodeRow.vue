@@ -17,9 +17,9 @@
             >: {{ episode.audioFile.metadata.filename }}
           </p>
           <div v-else class="w-full inline-flex justify-between max-w-xl">
-            <p v-if="episode?.season" class="text-sm text-gray-300">{{ $getString('LabelSeasonNumber', [episode.season]) }}</p>
-            <p v-if="episode?.episode" class="text-sm text-gray-300">{{ $getString('LabelEpisodeNumber', [episode.episode]) }}</p>
-            <p v-if="episode?.chapters?.length" class="text-sm text-gray-300">{{ $getString('LabelChapterCount', [episode.chapters.length]) }}</p>
+            <p v-if="episode && episode.season" class="text-sm text-gray-300">{{ $getString('LabelSeasonNumber', [episode.season]) }}</p>
+            <p v-if="episode && episode.episode" class="text-sm text-gray-300">{{ $getString('LabelEpisodeNumber', [episode.episode]) }}</p>
+            <p v-if="episode && episode.chapters && episode.chapters.length" class="text-sm text-gray-300">{{ $getString('LabelChapterCount', [episode.chapters.length]) }}</p>
             <p v-if="publishedAt" class="text-sm text-gray-300">{{ $getString('LabelPublishedDate', [$formatDate(publishedAt, dateFormat)]) }}</p>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default {
       return this.episode?.subtitle || this.episode?.description || ''
     },
     episodeType() {
-      return this.episode?.episodeType || ''
+      return this.episode && episode.episodeType || ''
     },
     publishedAt() {
       return this.episode?.publishedAt

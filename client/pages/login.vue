@@ -1,5 +1,7 @@
 <template>
   <div id="page-wrapper" class="w-full h-screen overflow-y-auto">
+    <div class="login-ambient login-ambient-one" />
+    <div class="login-ambient login-ambient-two" />
     <div class="absolute z-0 top-0 left-0 px-6 py-3">
       <div class="flex items-center">
         <img :src="uiLogoSrc" alt="Audiobookshelf Logo" class="w-10 min-w-10 h-10 app-logo" />
@@ -7,7 +9,17 @@
       </div>
     </div>
 
-    <div class="relative z-10 w-full flex h-full items-center justify-center">
+    <div class="login-stage relative z-10 w-full flex h-full items-center justify-center">
+      <aside v-if="isInit" class="login-intro">
+        <span class="login-kicker">YOUR AUDIO · YOUR SPACE</span>
+        <h2>让每一段好故事，<br />都触手可及。</h2>
+        <p>统一管理本地与 STRM 云端音频，跨设备同步收听进度。</p>
+        <div class="login-feature-list">
+          <span><i class="material-symbols">cloud_done</i>云端直链秒播</span>
+          <span><i class="material-symbols">sync</i>进度实时同步</span>
+          <span><i class="material-symbols">shield_lock</i>数据完全私有</span>
+        </div>
+      </aside>
       <div v-if="criticalError" class="w-full max-w-md rounded-sm border border-error/25 bg-error/10 p-4">
         <p class="text-center text-lg font-semibold">{{ $strings.MessageServerCouldNotBeReached }}</p>
       </div>
@@ -30,8 +42,8 @@
           </div>
         </form>
       </div>
-      <div v-else-if="isInit" class="w-full max-w-md px-8 pb-8 pt-4 lg:-mt-40">
-        <div class="bg-bg rounded-md shadow-lg border border-white/5 p-4">
+      <div v-else-if="isInit" class="login-panel w-full max-w-md px-8 pb-8 pt-4">
+        <div class="login-card bg-bg rounded-md shadow-lg border border-white/5 p-4">
           <p class="text-2xl font-semibold text-center text-white mb-4">{{ $strings.HeaderLogin }}</p>
 
           <div class="w-full h-px bg-white/10 my-4" />
@@ -328,3 +340,24 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+#page-wrapper { position: relative; overflow: hidden; background: radial-gradient(circle at 20% 14%, rgba(91,183,151,.18), transparent 36%), linear-gradient(140deg, #14241f, #07100e 70%); }
+.login-ambient { position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; }
+.login-ambient-one { top: -15%; left: -8%; width: 42vw; height: 42vw; background: rgba(85,204,176,.12); }
+.login-ambient-two { right: -12%; bottom: -20%; width: 48vw; height: 48vw; background: rgba(87,165,185,.08); }
+.login-stage { gap: clamp(45px, 10vw, 170px); padding: 80px 7vw 40px; }
+.login-intro { width: min(560px, 46vw); }
+.login-kicker { color: var(--ui-accent); font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
+.login-intro h2 { margin-top: 18px; font-size: clamp(2.3rem, 4.5vw, 4.6rem); font-weight: 760; line-height: 1.14; letter-spacing: -.045em; }
+.login-intro > p { max-width: 430px; margin-top: 22px; color: var(--ui-muted); font-size: 1rem; line-height: 1.8; }
+.login-feature-list { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 32px; }
+.login-feature-list span { display: inline-flex; align-items: center; gap: 6px; color: #c3d4cf; font-size: .75rem; }
+.login-feature-list i { color: var(--ui-accent); font-size: 1.1rem; font-style: normal; }
+.login-panel { padding: 0; }
+.login-card { padding: 30px !important; border-radius: 20px !important; background: rgba(13,28,23,.76) !important; border-color: var(--ui-border) !important; box-shadow: 0 30px 80px rgba(0,0,0,.36) !important; backdrop-filter: blur(24px); }
+.login-card label { display: block; margin: 16px 0 6px; color: var(--ui-muted); text-transform: none; letter-spacing: 0; }
+.login-card::v-deep input { min-height: 44px; }
+.login-card::v-deep .abs-btn { width: 100%; min-height: 44px; margin-top: 5px; color: #07110e; background: var(--ui-accent) !important; }
+@media (max-width: 860px) { .login-stage { padding: 80px 20px 30px; } .login-intro { display: none; } .login-panel { max-width: 430px; } }
+</style>

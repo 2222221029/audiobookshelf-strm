@@ -1,7 +1,7 @@
 <template>
   <div id="page-wrapper" class="bg-bg page overflow-hidden" :class="streamLibraryItem ? 'streaming' : ''">
-    <div class="w-full h-full overflow-y-auto px-2 py-6 md:p-8">
-      <div class="flex flex-col sm:flex-row max-w-6xl mx-auto">
+    <div class="playlist-shell w-full h-full overflow-y-auto px-2 py-6 md:p-8">
+      <div class="playlist-hero ui-card flex flex-col sm:flex-row max-w-6xl mx-auto">
         <div class="w-full flex justify-center md:block sm:w-32 md:w-52" style="min-width: 200px">
           <div class="relative" style="height: fit-content">
             <covers-playlist-cover :items="playlistItems" :width="200" :height="200" />

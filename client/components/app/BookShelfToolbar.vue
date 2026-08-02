@@ -55,7 +55,10 @@
       </template>
       <!-- library & collections page -->
       <template v-else-if="page !== 'search' && page !== 'podcast-search' && page !== 'recent-episodes' && !isHome && !isAuthorsPage">
-        <p class="hidden md:block">{{ $formatNumber(numShowing) }} {{ entityName }}</p>
+        <div class="toolbar-title hidden md:flex">
+          <strong>{{ entityName }}</strong>
+          <small>{{ $formatNumber(numShowing) }} 项</small>
+        </div>
 
         <div class="grow hidden sm:inline-block" />
 
@@ -85,7 +88,10 @@
       </template>
       <!-- authors page -->
       <template v-else-if="isAuthorsPage">
-        <p class="hidden md:block">{{ $formatNumber(numShowing) }} {{ entityName }}</p>
+        <div class="toolbar-title hidden md:flex">
+          <strong>{{ entityName }}</strong>
+          <small>{{ $formatNumber(numShowing) }} 位</small>
+        </div>
 
         <div class="grow hidden sm:inline-block" />
         <ui-btn v-if="userCanUpdate && !isBatchSelecting" :loading="processingAuthors" color="bg-primary" small @click="matchAllAuthors">{{ $strings.ButtonMatchAllAuthors }}</ui-btn>

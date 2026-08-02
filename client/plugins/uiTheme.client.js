@@ -3,8 +3,8 @@ const THEME_CLASS_PREFIX = 'theme-'
 const THEMES = ['classic', 'nebula', 'obsidian', 'aurora', 'ember', 'porcelain']
 const DEFAULT_THEME = 'nebula'
 const THEME_LABELS = {
-  classic: '原初 Classic',
-  nebula: '星潮 Nebula',
+  classic: '原版 Classic',
+  nebula: '森屿 Forest',
   obsidian: '极夜 Obsidian',
   aurora: '晨雾 Aurora',
   ember: '余烬 Ember',

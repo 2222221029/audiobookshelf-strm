@@ -1,8 +1,9 @@
 <template>
   <div class="page relative" :class="streamLibraryItem ? 'streaming' : ''">
     <app-book-shelf-toolbar page="library-stats" is-home />
-    <div id="bookshelf" class="w-full h-full px-1 py-4 md:p-8 relative overflow-y-auto">
-      <div class="w-full max-w-4xl mx-auto">
+    <div id="bookshelf" class="library-stats-page w-full h-full px-1 py-4 md:p-8 relative overflow-y-auto">
+      <div class="w-full max-w-5xl mx-auto">
+        <div class="ui-page-header"><div><h1 class="ui-page-title">{{ currentLibraryName }}</h1><p class="ui-page-subtitle">媒体库容量、时长和内容分布。</p></div></div>
         <stats-preview-icons v-if="totalItems" :library-stats="libraryStats" />
 
         <div class="flex lg:flex-row flex-wrap justify-between flex-col mt-8">

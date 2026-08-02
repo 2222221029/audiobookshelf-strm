@@ -1,6 +1,6 @@
 <template>
   <div id="page-wrapper" class="page p-6 overflow-y-auto relative" :class="streamLibraryItem ? 'streaming' : ''">
-    <div class="w-full max-w-2xl mx-auto">
+    <div class="account-shell ui-card w-full max-w-2xl mx-auto">
       <h1 class="text-2xl">{{ $strings.HeaderAccount }}</h1>
 
       <div class="my-4">
@@ -57,8 +57,8 @@
               </td>
               <td class="w-40">
                 <div class="flex justify-end items-center h-10">
-                  <ui-icon-btn icon="edit" borderless :size="8" icon-font-size="1.1rem" :disabled="deletingDeviceName === device.name || device.users?.length !== 1" class="mx-1" @click="editDeviceClick(device)" />
-                  <ui-icon-btn icon="delete" borderless :size="8" icon-font-size="1.1rem" :disabled="deletingDeviceName === device.name || device.users?.length !== 1" @click="deleteDeviceClick(device)" />
+                  <ui-icon-btn icon="edit" borderless :size="8" icon-font-size="1.1rem" :disabled="deletingDeviceName === device.name || !device.users || device.users.length !== 1" class="mx-1" @click="editDeviceClick(device)" />
+                  <ui-icon-btn icon="delete" borderless :size="8" icon-font-size="1.1rem" :disabled="deletingDeviceName === device.name || !device.users || device.users.length !== 1" @click="deleteDeviceClick(device)" />
                 </div>
               </td>
             </tr>

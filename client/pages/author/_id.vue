@@ -1,7 +1,7 @@
 <template>
-  <div id="page-wrapper" class="bg-bg page overflow-y-auto p-4 md:p-8" :class="streamLibraryItem ? 'streaming' : ''">
+  <div id="page-wrapper" class="author-page bg-bg page overflow-y-auto p-4 md:p-8" :class="streamLibraryItem ? 'streaming' : ''">
     <div class="max-w-6xl mx-auto">
-      <div class="flex flex-wrap sm:flex-nowrap justify-center mb-6">
+      <div class="author-hero ui-card flex flex-wrap sm:flex-nowrap justify-center mb-6">
         <div class="w-48 min-w-48">
           <div class="w-full h-60">
             <covers-author-image :author="author" rounded-sm="0" />

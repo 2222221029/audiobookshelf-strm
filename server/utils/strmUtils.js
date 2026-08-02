@@ -7,6 +7,104 @@ const { filePathToPOSIX } = require('./fileUtils')
 const STRM_COMMENT_PREFIXES = ['#', '//']
 const DEFAULT_PROBE_SKIP_PREFIXES = ['/CloudNAS']
 const remoteUrlCache = new Map()
+const STRM_SETTINGS_FILE = 'strm-settings.json'
+const STRM_SETTING_ENV_MAP = {
+  scanProbe: 'STRM_SCAN_PROBE',
+  scanTargetSize: 'STRM_SCAN_TARGET_SIZE',
+  scanSkipProbePaths: 'STRM_SCAN_SKIP_PROBE_PATHS',
+  directUrlMap: 'STRM_DIRECT_URL_MAP',
+  logFullRedirectUrl: 'STRM_LOG_FULL_REDIRECT_URL'
+}
+let loadedSettingsPath = null
+
+function getStrmSettingsPath() {
+  return global.ConfigPath ? Path.join(global.ConfigPath, STRM_SETTINGS_FILE) : null
+}
+
+function normalizeStrmSettings(settings = {}) {
+  return {
+    scanProbe: settings.scanProbe === true || settings.scanProbe === '1',
+    scanTargetSize: settings.scanTargetSize === true || settings.scanTargetSize === '1',
+    scanSkipProbePaths: String(settings.scanSkipProbePaths || '/CloudNAS'),
+    directUrlMap: String(settings.directUrlMap || ''),
+    logFullRedirectUrl: settings.logFullRedirectUrl === true || settings.logFullRedirectUrl === '1'
+  }
+}
+
+function applyStrmSettings(settings = {}) {
+  const normalized = normalizeStrmSettings(settings)
+  for (const [key, envName] of Object.entries(STRM_SETTING_ENV_MAP)) {
+    const value = normalized[key]
+    process.env[envName] = typeof value === 'boolean' ? (value ? '1' : '0') : value
+  }
+  return normalized
+}
+
+function getStrmSettings() {
+  return normalizeStrmSettings({
+    scanProbe: process.env.STRM_SCAN_PROBE,
+    scanTargetSize: process.env.STRM_SCAN_TARGET_SIZE || process.env.STRM_SCAN_URL_SIZE,
+    scanSkipProbePaths: process.env.STRM_SCAN_SKIP_PROBE_PATHS,
+    directUrlMap: process.env.STRM_DIRECT_URL_MAP,
+    logFullRedirectUrl: process.env.STRM_LOG_FULL_REDIRECT_URL
+  })
+}
+module.exports.getStrmSettings = getStrmSettings
+
+function loadStrmSettings() {
+  const settingsPath = getStrmSettingsPath()
+  if (!settingsPath || loadedSettingsPath === settingsPath) return getStrmSettings()
+  loadedSettingsPath = settingsPath
+
+  try {
+    if (!fs.existsSync(settingsPath)) return getStrmSettings()
+    const savedSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
+    const normalized = applyStrmSettings(savedSettings)
+    Logger.info('[STRM] Loaded persistent settings from config')
+    return normalized
+  } catch (error) {
+    Logger.error('[STRM] Failed to load persistent settings: ' + error.message)
+    return getStrmSettings()
+  }
+}
+module.exports.loadStrmSettings = loadStrmSettings
+
+async function saveStrmSettings(settings) {
+  const settingsPath = getStrmSettingsPath()
+  if (!settingsPath) throw new Error('Config path is not available')
+  const normalized = applyStrmSettings(settings)
+  await fs.writeFile(settingsPath, JSON.stringify(normalized, null, 2), 'utf8')
+  loadedSettingsPath = settingsPath
+  Logger.info('[STRM] Persistent settings updated')
+  return normalized
+}
+module.exports.saveStrmSettings = saveStrmSettings
+
+function getStrmCacheStatus() {
+  const now = Date.now()
+  for (const [key, value] of remoteUrlCache.entries()) {
+    if (!value || value.expiresAt <= now) remoteUrlCache.delete(key)
+  }
+  return {
+    entries: remoteUrlCache.size,
+    items: [...remoteUrlCache.entries()].map(([source, value]) => {
+      let host = 'unknown'
+      try {
+        host = new URL(source).host
+      } catch (error) {}
+      return { host, expiresAt: value.expiresAt }
+    })
+  }
+}
+module.exports.getStrmCacheStatus = getStrmCacheStatus
+
+function clearStrmRemoteUrlCache() {
+  const entries = remoteUrlCache.size
+  remoteUrlCache.clear()
+  Logger.info('[STRM] Cleared ' + entries + ' cached redirect URL(s)')
+  return entries
+}
+module.exports.clearStrmRemoteUrlCache = clearStrmRemoteUrlCache
 
 function getCachedRemoteUrl(remoteUrl) {
   const cached = remoteUrlCache.get(remoteUrl)
@@ -36,6 +134,7 @@ function cacheRemoteUrl(remoteUrl, resolvedUrl) {
  * @returns {{ localPrefix: string, urlPrefix: string }[]}
  */
 function parseDirectUrlMap() {
+  loadStrmSettings()
   const raw = process.env.STRM_DIRECT_URL_MAP
   if (!raw) return []
   return raw
@@ -52,6 +151,7 @@ function parseDirectUrlMap() {
     })
     .filter(Boolean)
 }
+module.exports.parseDirectUrlMap = parseDirectUrlMap
 
 /**
  * If the given local file path is under a configured cloud mount prefix,

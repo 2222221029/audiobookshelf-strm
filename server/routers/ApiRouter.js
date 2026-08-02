@@ -359,6 +359,9 @@ class ApiRouter {
     this.router.patch('/auth-settings', MiscController.updateAuthSettings.bind(this))
     this.router.post('/watcher/update', MiscController.updateWatchedPath.bind(this))
     this.router.get('/logger-data', MiscController.getLoggerData.bind(this))
+    this.router.get('/strm/settings', MiscController.getStrmSettings.bind(this))
+    this.router.patch('/strm/settings', MiscController.updateStrmSettings.bind(this))
+    this.router.post('/strm/cache/purge', MiscController.purgeStrmCache.bind(this))
   }
 
   //

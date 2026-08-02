@@ -3,6 +3,61 @@
     <!-- Cover size widget -->
     <widgets-cover-size-widget class="fixed right-4 z-50" :style="{ bottom: streamLibraryItem ? '181px' : '16px' }" />
 
+    <section v-if="!search && loaded && shelves.length" class="home-overview">
+      <div class="ui-page-header">
+        <div>
+          <h2 class="ui-page-title">{{ greeting }}，{{ username }}</h2>
+          <p class="ui-page-subtitle">从上次停下的地方继续，或者发现下一段好故事。</p>
+        </div>
+        <nuxt-link :to="`/library/${currentLibraryId}/search?q=`" class="home-discover-link">
+          <span class="material-symbols">explore</span>
+          搜索与发现
+        </nuxt-link>
+      </div>
+
+      <div class="ui-stat-grid home-stats">
+        <div class="ui-card ui-stat-card">
+          <span class="material-symbols stat-icon">library_books</span>
+          <p class="ui-stat-label">媒体项目</p>
+          <p class="ui-stat-value">{{ $formatNumber(libraryStats.totalItems || 0) }}</p>
+        </div>
+        <div class="ui-card ui-stat-card">
+          <span class="material-symbols stat-icon">headphones</span>
+          <p class="ui-stat-label">音频文件</p>
+          <p class="ui-stat-value">{{ $formatNumber(libraryStats.numAudioTracks || 0) }}</p>
+        </div>
+        <div class="ui-card ui-stat-card">
+          <span class="material-symbols stat-icon">schedule</span>
+          <p class="ui-stat-label">总时长</p>
+          <p class="ui-stat-value stat-value-small">{{ totalDurationLabel }}</p>
+        </div>
+        <div class="ui-card ui-stat-card">
+          <span class="material-symbols stat-icon">database</span>
+          <p class="ui-stat-label">媒体容量</p>
+          <p class="ui-stat-value stat-value-small">{{ totalSizeLabel }}</p>
+        </div>
+      </div>
+
+      <div v-if="heroItem" class="ui-card home-hero">
+        <img :src="heroCoverSrc" alt="" class="home-hero-cover" />
+        <div class="home-hero-copy">
+          <span class="ui-chip active">继续收听</span>
+          <h3>{{ heroTitle }}</h3>
+          <p class="home-hero-author">{{ heroAuthor }}</p>
+          <div class="home-hero-progress"><span :style="{ width: heroProgressPercent + '%' }" /></div>
+          <p class="home-hero-caption">已完成 {{ Math.round(heroProgressPercent) }}% · {{ heroRemainingLabel }}</p>
+          <div class="home-hero-actions">
+            <button type="button" class="home-play-btn" @click="playHero">
+              <span class="material-symbols fill">play_arrow</span>
+              继续播放
+            </button>
+            <button type="button" class="home-detail-btn" @click="openHero">查看详情</button>
+          </div>
+        </div>
+        <div class="home-hero-glow" :style="{ backgroundImage: `url(${heroCoverSrc})` }" />
+      </div>
+    </section>
+
     <div v-if="loaded && !shelves.length && !search" class="w-full flex flex-col items-center justify-center py-12">
       <p class="text-center text-2xl mb-4 py-4">{{ $getString('MessageXLibraryIsEmpty', [libraryName]) }}</p>
       <div v-if="userIsAdminOrUp" class="flex">
@@ -47,7 +102,8 @@ export default {
       wrapperClientWidth: 0,
       shelves: [],
       lastItemIndexSelected: -1,
-      tempIsScanning: false
+      tempIsScanning: false,
+      libraryStats: {}
     }
   },
   computed: {
@@ -109,6 +165,58 @@ export default {
     },
     isScanningLibrary() {
       return !!this.$store.getters['tasks/getRunningLibraryScanTask'](this.currentLibraryId)
+    },
+    username() {
+      return this.$store.state.user.user?.username || '听友'
+    },
+    greeting() {
+      const hour = new Date().getHours()
+      if (hour < 6) return '夜深了'
+      if (hour < 11) return '早上好'
+      if (hour < 14) return '中午好'
+      if (hour < 18) return '下午好'
+      return '晚上好'
+    },
+    continueShelf() {
+      return this.shelves.find((shelf) => ['continue-listening', 'continue-reading'].includes(shelf.id))
+    },
+    heroItem() {
+      return this.continueShelf?.entities?.[0] || null
+    },
+    heroMedia() {
+      return this.heroItem?.media || {}
+    },
+    heroMetadata() {
+      return this.heroMedia.metadata || {}
+    },
+    heroTitle() {
+      return this.heroItem?.recentEpisode?.title || this.heroMetadata.title || '继续收听'
+    },
+    heroAuthor() {
+      return this.heroMetadata.authorName || this.heroMetadata.author || this.heroMetadata.narratorName || ''
+    },
+    heroProgress() {
+      if (!this.heroItem) return null
+      const episodeId = this.heroItem.recentEpisode?.id || null
+      return this.$store.getters['user/getUserMediaProgress'](this.heroItem.id, episodeId)
+    },
+    heroProgressPercent() {
+      return Math.max(0, Math.min(100, (this.heroProgress?.progress || 0) * 100))
+    },
+    heroCoverSrc() {
+      if (!this.heroItem) return ''
+      return this.$store.getters['globals/getLibraryItemCoverSrc'](this.heroItem)
+    },
+    heroRemainingLabel() {
+      const duration = this.heroItem?.recentEpisode?.audioFile?.duration || this.heroMedia.duration || 0
+      const remaining = Math.max(0, duration - (this.heroProgress?.currentTime || 0))
+      return remaining ? `剩余 ${this.$elapsedPrettyExtended(remaining, false)}` : '准备播放'
+    },
+    totalDurationLabel() {
+      return this.libraryStats.totalDuration ? this.$elapsedPrettyExtended(this.libraryStats.totalDuration, false) : '—'
+    },
+    totalSizeLabel() {
+      return this.libraryStats.totalSize ? this.$bytesPretty(this.libraryStats.totalSize) : '—'
     }
   },
   methods: {
@@ -212,6 +320,34 @@ export default {
         totalEntityCount += shelf.entities.length
       }
       this.shelves = categories
+      this.fetchLibraryStats()
+    },
+    async fetchLibraryStats() {
+      this.libraryStats = await this.$axios.$get(`/api/libraries/${this.currentLibraryId}/stats`).catch((error) => {
+        console.error('Failed to fetch library stats', error)
+        return {}
+      })
+    },
+    openHero() {
+      if (this.heroItem) this.$router.push(`/item/${this.heroItem.id}`)
+    },
+    playHero() {
+      if (!this.heroItem) return
+      const episode = this.heroItem.recentEpisode || null
+      this.$eventBus.$emit('play-item', {
+        libraryItemId: this.heroItem.id,
+        episodeId: episode?.id || null,
+        queueItems: [{
+          libraryItemId: this.heroItem.id,
+          libraryId: this.heroItem.libraryId,
+          episodeId: episode?.id || null,
+          title: episode?.title || this.heroMetadata.title,
+          subtitle: this.heroAuthor,
+          caption: '',
+          duration: episode?.audioFile?.duration || this.heroMedia.duration || null,
+          coverPath: this.heroMedia.coverPath || null
+        }]
+      })
     },
     async setShelvesFromSearch() {
       const shelves = []

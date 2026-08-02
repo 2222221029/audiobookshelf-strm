@@ -48,7 +48,7 @@
               <p v-else class="modern-author">by Unknown</p>
 
               <div class="modern-meta-chips">
-                <span v-if="mediaMetadata.narrators?.length" class="modern-chip"><span class="material-symbols">person</span>{{ mediaMetadata.narrators[0] }}</span>
+                <span v-if="mediaMetadata.narrators && mediaMetadata.narrators.length" class="modern-chip"><span class="material-symbols">person</span>{{ mediaMetadata.narrators[0] }}</span>
                 <span v-if="mediaMetadata.publishedYear" class="modern-chip"><span class="material-symbols">calendar_month</span>{{ mediaMetadata.publishedYear }}</span>
                 <span v-if="mediaMetadata.publisher" class="modern-chip"><span class="material-symbols">headphones</span>{{ mediaMetadata.publisher }}</span>
                 <span v-if="mediaMetadata.language" class="modern-chip"><span class="material-symbols">language</span>{{ mediaMetadata.language }}</span>

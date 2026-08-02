@@ -128,11 +128,11 @@
             </p>
           </div>
         </div>
-        <div v-if="selectedMatchOrig.genres?.length" class="flex items-center py-2">
+        <div v-if="selectedMatchOrig.genres && selectedMatchOrig.genres.length" class="flex items-center py-2">
           <ui-checkbox v-model="selectedMatchUsage.genres" checkbox-bg="bg" @input="checkboxToggled" />
           <div class="grow ml-4">
             <ui-multi-select v-model="selectedMatch.genres" :items="genres" :disabled="!selectedMatchUsage.genres" :label="$strings.LabelGenres" />
-            <p v-if="mediaMetadata.genres?.length" class="text-xs ml-1 text-white/60">
+            <p v-if="mediaMetadata.genres && mediaMetadata.genres.length" class="text-xs ml-1 text-white/60">
               {{ $strings.LabelCurrently }} <a :title="$strings.LabelClickToUseCurrentValue" class="cursor-pointer hover:underline" @click.stop="setMatchFieldValue('genres', mediaMetadata.genres)">{{ mediaMetadata.genres.join(', ') }}</a>
             </p>
           </div>
@@ -141,7 +141,7 @@
           <ui-checkbox v-model="selectedMatchUsage.tags" checkbox-bg="bg" @input="checkboxToggled" />
           <div class="grow ml-4">
             <ui-multi-select v-model="selectedMatch.tags" :items="tags" :disabled="!selectedMatchUsage.tags" :label="$strings.LabelTags" />
-            <p v-if="media.tags?.length" class="text-xs ml-1 text-white/60">
+            <p v-if="media.tags && media.tags.length" class="text-xs ml-1 text-white/60">
               {{ $strings.LabelCurrently }} <a :title="$strings.LabelClickToUseCurrentValue" class="cursor-pointer hover:underline" @click.stop="setMatchFieldValue('tags', media.tags)">{{ media.tags.join(', ') }}</a>
             </p>
           </div>

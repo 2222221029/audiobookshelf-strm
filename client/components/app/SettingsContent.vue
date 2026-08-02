@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-bg rounded-md shadow-lg border border-white/5 p-2 sm:p-4 mb-8">
-    <div class="flex items-center mb-2">
+  <div class="settings-card bg-bg rounded-md shadow-lg border border-white/5 p-2 sm:p-4 mb-8">
+    <div class="settings-card-header flex items-center mb-2">
       <slot name="header-prefix"></slot>
-      <h1 class="text-xl">{{ headerText }}</h1>
+      <h1 class="text-xl font-semibold">{{ headerText }}</h1>
 
       <slot name="header-items"></slot>
     </div>

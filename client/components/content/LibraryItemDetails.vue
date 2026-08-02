@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="narrators?.length" class="flex py-0.5 mt-4">
+    <div v-if="narrators && narrators.length" class="flex py-0.5 mt-4">
       <div class="w-34 min-w-34 sm:w-34 sm:min-w-34 break-words">
         <span class="text-white/60 uppercase text-sm">{{ $strings.LabelNarrators }}</span>
       </div>

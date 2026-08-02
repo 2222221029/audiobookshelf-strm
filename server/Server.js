@@ -57,6 +57,7 @@ class Server {
     global.RouterBasePath = ROUTER_BASE_PATH
     global.XAccel = process.env.USE_X_ACCEL
     global.AllowCors = process.env.ALLOW_CORS === '1'
+    require('./utils/strmUtils').loadStrmSettings()
 
     if (process.env.EXP_PROXY_SUPPORT === '1') {
       // https://github.com/advplyr/audiobookshelf/pull/3754

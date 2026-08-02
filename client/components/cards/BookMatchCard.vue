@@ -24,7 +24,7 @@
           <div v-if="book.matchConfidence" class="rounded-full px-2 py-1 text-xs whitespace-nowrap text-white" :class="book.matchConfidence > 0.95 ? 'bg-success/80' : 'bg-info/80'">{{ $strings.LabelMatchConfidence }}: {{ (book.matchConfidence * 100).toFixed(0) }}%</div>
         </div>
 
-        <div v-if="book.series?.length" class="flex py-1 -mx-1">
+        <div v-if="book.series && book.series.length" class="flex py-1 -mx-1">
           <div v-for="(series, index) in book.series" :key="index" class="bg-white/10 rounded-full px-1 py-0.5 mx-1">
             <p class="leading-3 text-xs text-gray-400">
               {{ series.series }}<span v-if="series.sequence">&nbsp;#{{ series.sequence }}</span>

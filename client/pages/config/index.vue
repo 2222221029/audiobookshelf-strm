@@ -1,5 +1,23 @@
 <template>
   <div>
+    <section class="config-overview-grid">
+      <nuxt-link to="/config/libraries" class="ui-card config-overview-card">
+        <span class="material-symbols">dns</span>
+        <div><small>服务状态</small><strong>运行正常</strong></div>
+      </nuxt-link>
+      <nuxt-link to="/config/libraries" class="ui-card config-overview-card">
+        <span class="material-symbols">folder</span>
+        <div><small>媒体库</small><strong>{{ libraryCount }}</strong></div>
+      </nuxt-link>
+      <nuxt-link to="/config/users" class="ui-card config-overview-card">
+        <span class="material-symbols">group</span>
+        <div><small>当前用户</small><strong>{{ username }}</strong></div>
+      </nuxt-link>
+      <nuxt-link to="/config/strm" class="ui-card config-overview-card">
+        <span class="material-symbols">cloud_sync</span>
+        <div><small>STRM</small><strong>查看状态</strong></div>
+      </nuxt-link>
+    </section>
     <app-settings-content :header-text="$strings.HeaderSettings">
       <div class="lg:flex">
         <div class="flex-1">
@@ -297,6 +315,12 @@ export default {
     }
   },
   computed: {
+    libraryCount() {
+      return this.$store.state.libraries.libraries.length
+    },
+    username() {
+      return this.$store.state.user.user?.username || '—'
+    },
     serverSettings() {
       return this.$store.state.serverSettings
     },

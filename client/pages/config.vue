@@ -58,6 +58,7 @@ export default {
         else if (pageName === 'rss-feeds') return this.$strings.HeaderRSSFeeds
         else if (pageName === 'email') return this.$strings.HeaderEmail
         else if (pageName === 'authentication') return this.$strings.HeaderAuthentication
+        else if (pageName === 'strm') return 'STRM'
       }
       return this.$strings.HeaderSettings
     }
@@ -79,12 +80,12 @@ export default {
 <style>
 .configContent {
   margin: auto;
-  width: 900px;
-  max-width: calc(100% - 176px);
+  width: 1180px;
+  max-width: calc(100% - 248px);
 }
 @media (max-width: 1240px) {
   .configContent {
-    margin-left: 176px;
+    margin-left: 232px;
   }
 }
 @media (max-width: 640px) {

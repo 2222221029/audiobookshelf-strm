@@ -21,6 +21,11 @@
         <!-- Cover Image -->
         <img cy-id="coverImage" v-if="libraryItem" :alt="`${displayTitle}, ${$strings.LabelCover}`" ref="cover" aria-hidden="true" :src="bookCoverSrc" class="relative w-full h-full transition-opacity duration-300" :class="showCoverBg ? 'object-contain' : 'object-fill'" @load="imageLoaded" :style="{ opacity: imageReady ? 1 : 0 }" />
 
+        <div v-if="libraryItem && !isHovering && !isSelectionMode" class="media-source-badge" :class="isStrmSource ? 'source-strm' : 'source-local'">
+          <span class="material-symbols">{{ isStrmSource ? 'cloud' : 'hard_drive' }}</span>
+          {{ isStrmSource ? 'STRM' : localSourceLabel }}
+        </div>
+
         <!-- Placeholder Cover Title & Author -->
         <div cy-id="placeholderTitle" v-if="!hasCover" class="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex items-center justify-center" :style="{ padding: placeholderCoverPadding + 'em' }">
           <div>
@@ -219,6 +224,22 @@ export default {
     },
     mediaType() {
       return this._libraryItem.mediaType
+    },
+    mediaAudioFiles() {
+      if (Array.isArray(this.media.audioFiles)) return this.media.audioFiles
+      if (this.media.audioFile) return [this.media.audioFile]
+      if (Array.isArray(this.media.tracks)) return this.media.tracks.map((track) => track.audioFile || track).filter(Boolean)
+      return []
+    },
+    isStrmSource() {
+      return this.mediaAudioFiles.some((file) => {
+        const ext = file.metadata?.ext || file.ext || ''
+        return !!file.strmTarget || file.format === 'strm' || String(ext).toLowerCase() === '.strm'
+      })
+    },
+    localSourceLabel() {
+      const format = this.mediaAudioFiles[0]?.format || this.mediaAudioFiles[0]?.metadata?.ext || ''
+      return String(format).replace(/^\./, '').toUpperCase() || 'LOCAL'
     },
     isPodcast() {
       return this.mediaType === 'podcast' || this.store.getters['libraries/getCurrentLibraryMediaType'] === 'podcast'

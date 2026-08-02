@@ -40,7 +40,7 @@ module.exports = {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: ['@/assets/tailwind.css', '@/assets/app.css'],
+  css: ['@/assets/tailwind.css', '@/assets/app.css', '@/assets/modern-ui.css'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: ['@/plugins/constants.js', '@/plugins/init.client.js', '@/plugins/uiTheme.client.js', '@/plugins/uiLogo.client.js', '@/plugins/axios.js', '@/plugins/toast.js', '@/plugins/utils.js', '@/plugins/i18n.js'],

@@ -19,11 +19,11 @@
           </td>
           <td class="text-sm">{{ user.type }}</td>
           <td class="hidden lg:table-cell">
-            <div v-if="usersOnline[user.id]?.session?.displayTitle">
+            <div v-if="usersOnline[user.id] && usersOnline[user.id].session && usersOnline[user.id].session.displayTitle">
               <p class="truncate text-xs">Listening: {{ usersOnline[user.id].session.displayTitle || '' }}</p>
               <p class="truncate text-xs text-gray-300">{{ getDeviceInfoString(usersOnline[user.id].session.deviceInfo) }}</p>
             </div>
-            <div v-else-if="user.latestSession?.displayTitle">
+            <div v-else-if="user.latestSession && user.latestSession.displayTitle">
               <p class="truncate text-xs">Last: {{ user.latestSession.displayTitle || '' }}</p>
               <p class="truncate text-xs text-gray-300">{{ getDeviceInfoString(user.latestSession.deviceInfo) }}</p>
             </div>

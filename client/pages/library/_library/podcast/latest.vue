@@ -48,7 +48,7 @@
               <p dir="auto" class="text-sm text-gray-200 mb-4 line-clamp-4" v-html="episode.subtitle || episode.description" />
 
               <div class="flex items-center">
-                <button class="h-8 px-4 border border-white/20 hover:bg-white/10 rounded-full flex items-center justify-center cursor-pointer focus:outline-hidden" :class="episode.progress?.isFinished ? 'text-white/40' : ''" @click.stop="playClick(episode)">
+                <button class="h-8 px-4 border border-white/20 hover:bg-white/10 rounded-full flex items-center justify-center cursor-pointer focus:outline-hidden" :class="episode.progress && episode.progress.isFinished ? 'text-white/40' : ''" @click.stop="playClick(episode)">
                   <span v-if="episodeIdStreaming === episode.id" class="material-symbols text-2xl" :class="streamIsPlaying ? '' : 'text-success'">{{ streamIsPlaying ? 'pause' : 'play_arrow' }}</span>
                   <span v-else class="material-symbols fill text-2xl text-success">play_arrow</span>
                   <p class="pl-2 pr-1 text-sm font-semibold">{{ getButtonText(episode) }}</p>
@@ -58,8 +58,8 @@
                   <ui-icon-btn :icon="playerQueueEpisodeIdMap[episode.id] ? 'playlist_add_check' : 'playlist_play'" borderless @click="queueBtnClick(episode)" />
                 </ui-tooltip>
 
-                <ui-tooltip :text="!!episode.progress?.isFinished ? $strings.MessageMarkAsNotFinished : $strings.MessageMarkAsFinished" direction="top">
-                  <ui-read-icon-btn :disabled="episodesProcessingMap[episode.id]" :is-read="!!episode.progress?.isFinished" borderless class="mx-1 mt-0.5" @click="toggleEpisodeFinished(episode)" />
+                <ui-tooltip :text="!!episode.progress && episode.progress.isFinished ? $strings.MessageMarkAsNotFinished : $strings.MessageMarkAsFinished" direction="top">
+                  <ui-read-icon-btn :disabled="episodesProcessingMap[episode.id]" :is-read="!!episode.progress && episode.progress.isFinished" borderless class="mx-1 mt-0.5" @click="toggleEpisodeFinished(episode)" />
                 </ui-tooltip>
 
                 <ui-tooltip :text="$strings.LabelYourPlaylists" direction="top">
@@ -151,7 +151,7 @@ export default {
         return
       }
 
-      const isFinished = !!episode.progress?.isFinished
+      const isFinished = !!episode.progress && episode.progress.isFinished
       const itemProgressPercent = episode.progress?.progress || 0
       if (!isFinished && itemProgressPercent > 0 && !confirmed) {
         const payload = {
