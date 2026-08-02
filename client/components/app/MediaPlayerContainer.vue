@@ -1,6 +1,6 @@
 <template>
   <div v-if="streamLibraryItem" id="mediaPlayerContainer" class="w-full fixed bottom-0 left-0 right-0 h-48 lg:h-40 z-50 bg-primary px-2 lg:px-4 pb-1 lg:pb-4 pt-2" :class="{ 'player-page-open': playerIsFullscreen }">
-    <player-immersive-player-page
+    <immersive-player-page
       v-if="playerIsFullscreen"
       :library-item="streamLibraryItem"
       :title="title"
@@ -96,8 +96,10 @@
 
 <script>
 import PlayerHandler from '@/players/PlayerHandler'
+import ImmersivePlayerPage from '@/components/player/ImmersivePlayerPage'
 
 export default {
+  components: { ImmersivePlayerPage },
   data() {
     return {
       playerHandler: new PlayerHandler(this),
