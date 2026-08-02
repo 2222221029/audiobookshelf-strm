@@ -668,6 +668,11 @@ class Book extends Model {
     }
   }
 
+  /**
+   * Minified book JSON for list/shelf endpoints.
+   * `toOldJSONExpanded()` must be a strict superset: every key here must exist in expanded
+   * with the same value semantics. Only additive changes to expanded; never remove or rename keys.
+   */
   toOldJSONMinified() {
     if (!this.authors) {
       throw new Error(`[Book] Cannot convert to old JSON because authors are not loaded`)
@@ -690,6 +695,12 @@ class Book extends Model {
     }
   }
 
+  /**
+   * Expanded book JSON for item detail and socket events.
+   * Must be a strict superset of `toOldJSONMinified()` — built by spreading minified, then adding expanded-only fields.
+   *
+   * @param {string} libraryItemId
+   */
   toOldJSONExpanded(libraryItemId) {
     if (!libraryItemId) {
       throw new Error(`[Book] Cannot convert to old JSON because libraryItemId is not provided`)
@@ -702,16 +713,14 @@ class Book extends Model {
     }
 
     return {
-      id: this.id,
-      libraryItemId: libraryItemId,
+      ...this.toOldJSONMinified(),
+      libraryItemId,
       metadata: this.oldMetadataToJSONExpanded(),
       coverPath: this.coverPath,
       tags: [...(this.tags || [])],
       audioFiles: this.getAudioFilesForClient(),
       chapters: structuredClone(this.chapters),
       ebookFile: structuredClone(this.ebookFile),
-      duration: this.duration,
-      size: this.size,
       tracks: this.getTracklist(libraryItemId)
     }
   }
