@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full -mt-6">
-    <div class="w-full relative mb-1">
-      <div class="absolute -top-10 lg:top-0 right-0 lg:right-2 flex items-center h-full">
+  <div class="player-ui w-full -mt-6" :class="{ 'player-ui--immersive': immersive }">
+    <div class="player-ui-top w-full relative mb-1">
+      <div class="player-ui-actions absolute -top-10 lg:top-0 right-0 lg:right-2 flex items-center h-full">
         <controls-playback-speed-control v-model="playbackRate" @input="setPlaybackRate" @change="playbackRateChanged" :playbackRateIncrementDecrement="playbackRateIncrementDecrement" class="mx-2 block" />
 
         <ui-tooltip direction="bottom" :text="$strings.LabelVolume">
@@ -43,17 +43,17 @@
         </ui-tooltip>
       </div>
 
-      <player-playback-controls :loading="loading" :seek-loading="seekLoading" :playback-rate.sync="playbackRate" :paused="paused" :hasNextChapter="hasNextChapter" :hasNextItemInQueue="hasNextItemInQueue" @prevChapter="prevChapter" @next="goToNext" @jumpForward="jumpForward" @jumpBackward="jumpBackward" @setPlaybackRate="setPlaybackRate" @playPause="playPause" />
+      <player-playback-controls class="player-ui-transport" :loading="loading" :seek-loading="seekLoading" :playback-rate.sync="playbackRate" :paused="paused" :hasNextChapter="hasNextChapter" :hasNextItemInQueue="hasNextItemInQueue" @prevChapter="prevChapter" @next="goToNext" @jumpForward="jumpForward" @jumpBackward="jumpBackward" @setPlaybackRate="setPlaybackRate" @playPause="playPause" />
     </div>
 
-    <player-track-bar ref="trackbar" :loading="loading" :chapters="chapters" :duration="duration" :current-chapter="currentChapter" :playback-rate="playbackRate" @seek="seek" />
+    <player-track-bar ref="trackbar" class="player-ui-track" :loading="loading" :chapters="chapters" :duration="duration" :current-chapter="currentChapter" :playback-rate="playbackRate" @seek="seek" />
 
-    <div class="relative flex items-center justify-between">
+    <div class="player-ui-timeline relative flex items-center justify-between">
       <div class="grow flex items-center">
         <p ref="currentTimestamp" class="font-mono text-xxs sm:text-sm text-gray-100 pointer-events-auto">00:00:00</p>
         <p class="font-mono text-sm hidden sm:block text-gray-100 pointer-events-auto">&nbsp;/&nbsp;{{ progressPercent }}%</p>
       </div>
-      <div class="absolute left-1/2 transform -translate-x-1/2">
+      <div class="player-ui-chapter absolute left-1/2 transform -translate-x-1/2">
         <p class="text-xs sm:text-sm text-gray-300 pt-0.5 px-2 truncate">
           {{ currentChapterName }} <span v-if="useChapterTrack" class="text-xs text-gray-400">&nbsp;({{ $getString('LabelPlayerChapterNumberMarker', [currentChapterIndex + 1, chapters.length]) }})</span>
         </p>
@@ -72,6 +72,7 @@
 <script>
 export default {
   props: {
+    immersive: Boolean,
     loading: Boolean,
     paused: Boolean,
     chapters: {

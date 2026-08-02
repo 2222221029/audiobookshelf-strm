@@ -1,6 +1,11 @@
 <template>
   <div v-if="streamLibraryItem" id="mediaPlayerContainer" class="w-full fixed bottom-0 left-0 right-0 h-48 lg:h-40 z-50 bg-primary px-2 lg:px-4 pb-1 lg:pb-4 pt-2" :class="{ 'immersive-player': playerIsFullscreen }">
     <div v-if="playerIsFullscreen" class="immersive-backdrop" :style="{ backgroundImage: 'url(' + playerCoverSrc + ')' }" />
+    <div v-if="playerIsFullscreen" class="immersive-topbar">
+      <button type="button" aria-label="收起播放器" @click="toggleFullscreen"><span class="material-symbols">keyboard_arrow_down</span></button>
+      <span>沉浸播放</span>
+      <button type="button" :aria-label="$strings.LabelClosePlayer" @click="closePlayer"><span class="material-symbols">close</span></button>
+    </div>
     <div v-if="playerIsFullscreen" class="immersive-cover-wrap">
       <span class="ui-chip active">正在播放</span>
       <img :src="playerCoverSrc" alt="" class="immersive-cover" />
@@ -36,17 +41,18 @@
         </div>
       </div>
       <div class="grow" />
-      <ui-tooltip direction="top" :text="playerIsFullscreen ? '收起播放器' : '展开播放器'">
-        <button :aria-label="playerIsFullscreen ? '收起播放器' : '展开播放器'" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="toggleFullscreen">
-          {{ playerIsFullscreen ? 'keyboard_arrow_down' : 'open_in_full' }}
+      <ui-tooltip v-if="!playerIsFullscreen" direction="top" text="展开播放器">
+        <button aria-label="展开播放器" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="toggleFullscreen">
+          open_in_full
         </button>
       </ui-tooltip>
-      <ui-tooltip direction="top" :text="$strings.LabelClosePlayer">
+      <ui-tooltip v-if="!playerIsFullscreen" direction="top" :text="$strings.LabelClosePlayer">
         <button :aria-label="$strings.LabelClosePlayer" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="closePlayer">close</button>
       </ui-tooltip>
     </div>
     <player-ui
       ref="audioPlayer"
+      :immersive="playerIsFullscreen"
       :chapters="chapters"
       :current-chapter="currentChapter"
       :paused="!isPlaying"
@@ -72,19 +78,19 @@
 
     <aside v-if="playerIsFullscreen" class="immersive-queue ui-card">
       <div class="immersive-queue-heading">
-        <div><h3>播放队列</h3><p>{{ playerQueueItems.length }} 个项目</p></div>
+        <div><h3>播放队列</h3><p>{{ immersiveQueueItems.length }} 个项目</p></div>
         <button type="button" aria-label="打开完整播放队列" @click="showPlayerQueueItemsModal = true"><span class="material-symbols">more_horiz</span></button>
       </div>
       <div class="immersive-queue-list">
         <button
-          v-for="(item, index) in playerQueueItems"
-          :key="[item.libraryItemId, item.episodeId || '', index].join('-')"
+          v-for="(item, index) in immersiveQueueItems"
+          :key="item.key"
           type="button"
           class="immersive-queue-row"
-          :class="{ current: index === currentPlayerQueueIndex }"
-          @click="selectQueueItem(item)"
+          :class="{ current: item.current }"
+          @click="selectImmersiveQueueItem(item)"
         >
-          <span class="queue-index">{{ index === currentPlayerQueueIndex ? '▶' : index + 1 }}</span>
+          <span class="queue-index">{{ item.current ? '▶' : index + 1 }}</span>
           <span class="queue-copy"><strong>{{ item.title }}</strong><small>{{ item.subtitle || item.caption || '音频' }}</small></span>
           <time v-if="item.duration">{{ $secondsToTimestamp(item.duration) }}</time>
         </button>
@@ -228,6 +234,44 @@ export default {
           ? [this.media.audioFile]
           : (this.media.tracks || []).map((track) => track.audioFile || track)
       return files.some((file) => file?.strmTarget || file?.format === 'strm' || String(file?.metadata?.ext || '').toLowerCase() === '.strm')
+    },
+    immersiveQueueItems() {
+      const audioFiles = Array.isArray(this.media.audioFiles) ? this.media.audioFiles : []
+      if (audioFiles.length > 1) {
+        let start = 0
+        return audioFiles.map((file, index) => {
+          const duration = Number(file.duration) || 0
+          const itemStart = start
+          start += duration
+          const filename = file.metadata?.filename || file.metadata?.path?.split('/').pop() || `音轨 ${index + 1}`
+          return {
+            key: `track-${file.ino || index}`,
+            type: 'track',
+            title: filename.replace(/\.[^.]+$/, ''),
+            subtitle: file.metadata?.ext?.replace(/^\./, '').toUpperCase() || '音轨',
+            duration,
+            start: itemStart,
+            current: this.currentTime >= itemStart && this.currentTime < itemStart + duration
+          }
+        })
+      }
+      if (this.chapters.length > 1) {
+        return this.chapters.map((chapter, index) => ({
+          key: `chapter-${chapter.id || index}`,
+          type: 'chapter',
+          title: chapter.title || `章节 ${index + 1}`,
+          subtitle: '章节',
+          duration: Math.max(0, chapter.end - chapter.start),
+          start: chapter.start,
+          current: chapter === this.currentChapter
+        }))
+      }
+      return this.playerQueueItems.map((item, index) => ({
+        ...item,
+        key: `queue-${item.libraryItemId}-${item.episodeId || ''}-${index}`,
+        type: 'queue',
+        current: index === this.currentPlayerQueueIndex
+      }))
     }
   },
   methods: {
@@ -241,6 +285,14 @@ export default {
         episodeId: item.episodeId || null,
         queueItems: this.playerQueueItems
       })
+    },
+    selectImmersiveQueueItem(item) {
+      if (!item) return
+      if (item.type === 'track' || item.type === 'chapter') {
+        this.seek(item.start)
+        return
+      }
+      this.selectQueueItem(item)
     },
     mediaFinished(libraryItemId, episodeId) {
       // Play next item in queue
