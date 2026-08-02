@@ -1,25 +1,35 @@
 <template>
-  <div v-if="streamLibraryItem" id="mediaPlayerContainer" class="w-full fixed bottom-0 left-0 right-0 h-48 lg:h-40 z-50 bg-primary px-2 lg:px-4 pb-1 lg:pb-4 pt-2" :class="{ 'immersive-player': playerIsFullscreen }">
-    <div v-if="playerIsFullscreen" class="immersive-backdrop" :style="{ backgroundImage: 'url(' + playerCoverSrc + ')' }" />
-    <div v-if="playerIsFullscreen" class="immersive-topbar">
-      <button type="button" aria-label="收起播放器" @click="toggleFullscreen"><span class="material-symbols">keyboard_arrow_down</span></button>
-      <span>沉浸播放</span>
-      <button type="button" :aria-label="$strings.LabelClosePlayer" @click="closePlayer"><span class="material-symbols">close</span></button>
-    </div>
-    <div v-if="playerIsFullscreen" class="immersive-cover-wrap">
-      <span class="ui-chip active">正在播放</span>
-      <img :src="playerCoverSrc" alt="" class="immersive-cover" />
-      <div class="immersive-source" :class="{ strm: isStrmSource }">
-        <span class="material-symbols">{{ isStrmSource ? 'cloud' : 'hard_drive' }}</span>
-        {{ isStrmSource ? 'STRM 云端音频' : '本地音频' }}
-      </div>
-    </div>
+  <div v-if="streamLibraryItem" id="mediaPlayerContainer" class="w-full fixed bottom-0 left-0 right-0 h-48 lg:h-40 z-50 bg-primary px-2 lg:px-4 pb-1 lg:pb-4 pt-2" :class="{ 'player-page-open': playerIsFullscreen }">
+    <player-immersive-player-page
+      v-if="playerIsFullscreen"
+      :library-item="streamLibraryItem"
+      :title="title"
+      :author="displayAuthor"
+      :cover-src="playerCoverSrc"
+      :current-time="currentTime"
+      :duration="totalDuration"
+      :paused="!isPlaying"
+      :loading="playerLoading"
+      :is-strm="isStrmSource"
+      :playback-rate="currentPlaybackRate"
+      :queue-items="immersiveQueueItems"
+      :progress="userMediaProgress ? userMediaProgress.progress || 0 : 0"
+      @play-pause="playPause"
+      @jump-backward="jumpBackward"
+      @jump-forward="jumpForward"
+      @seek="seek"
+      @rate="setPlaybackRate"
+      @volume="setVolume"
+      @sleep="showSleepTimerModal = true"
+      @chapters="showPlayerQueueItemsModal = true"
+      @select-item="selectImmersiveQueueItem"
+      @details="openPlayerDetails"
+    />
     <div class="mini-cover absolute left-2 top-2 lg:left-4 cursor-pointer" @click="toggleFullscreen">
       <covers-book-cover expand-on-click :library-item="streamLibraryItem" :width="bookCoverWidth" :book-cover-aspect-ratio="coverAspectRatio" />
     </div>
     <div class="player-heading flex items-start mb-6 lg:mb-0" :class="isSquareCover ? 'pl-18 sm:pl-24' : 'pl-12 sm:pl-16'">
       <div class="min-w-0 w-full">
-        <p v-if="playerIsFullscreen" class="immersive-eyebrow">当前内容</p>
         <div class="flex items-center">
           <nuxt-link :to="`/item/${streamLibraryItem.id}`" class="hover:underline cursor-pointer text-sm sm:text-lg block truncate">
             {{ title }}
@@ -41,18 +51,18 @@
         </div>
       </div>
       <div class="grow" />
-      <ui-tooltip v-if="!playerIsFullscreen" direction="top" text="展开播放器">
-        <button aria-label="展开播放器" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="toggleFullscreen">
-          open_in_full
+      <ui-tooltip direction="top" :text="playerIsFullscreen ? '收起播放器' : '展开播放器'">
+        <button :aria-label="playerIsFullscreen ? '收起播放器' : '展开播放器'" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="toggleFullscreen">
+          {{ playerIsFullscreen ? 'keyboard_arrow_down' : 'open_in_full' }}
         </button>
       </ui-tooltip>
-      <ui-tooltip v-if="!playerIsFullscreen" direction="top" :text="$strings.LabelClosePlayer">
+      <ui-tooltip direction="top" :text="$strings.LabelClosePlayer">
         <button :aria-label="$strings.LabelClosePlayer" class="material-symbols sm:px-2 py-1 lg:p-4 cursor-pointer text-xl sm:text-2xl" @click="closePlayer">close</button>
       </ui-tooltip>
     </div>
     <player-ui
       ref="audioPlayer"
-      :immersive="playerIsFullscreen"
+      :immersive="false"
       :chapters="chapters"
       :current-chapter="currentChapter"
       :paused="!isPlaying"
@@ -75,27 +85,6 @@
       @showSleepTimer="showSleepTimerModal = true"
       @showPlayerQueueItems="showPlayerQueueItemsModal = true"
     />
-
-    <aside v-if="playerIsFullscreen" class="immersive-queue ui-card">
-      <div class="immersive-queue-heading">
-        <div><h3>播放队列</h3><p>{{ immersiveQueueItems.length }} 个项目</p></div>
-        <button type="button" aria-label="打开完整播放队列" @click="showPlayerQueueItemsModal = true"><span class="material-symbols">more_horiz</span></button>
-      </div>
-      <div class="immersive-queue-list">
-        <button
-          v-for="(item, index) in immersiveQueueItems"
-          :key="item.key"
-          type="button"
-          class="immersive-queue-row"
-          :class="{ current: item.current }"
-          @click="selectImmersiveQueueItem(item)"
-        >
-          <span class="queue-index">{{ item.current ? '▶' : index + 1 }}</span>
-          <span class="queue-copy"><strong>{{ item.title }}</strong><small>{{ item.subtitle || item.caption || '音频' }}</small></span>
-          <time v-if="item.duration">{{ $secondsToTimestamp(item.duration) }}</time>
-        </button>
-      </div>
-    </aside>
 
     <modals-bookmarks-modal v-model="showBookmarksModal" :bookmarks="bookmarks" :current-time="bookmarkCurrentTime" :playback-rate="currentPlaybackRate" :library-item-id="libraryItemId" @select="selectBookmark" />
 
@@ -194,6 +183,9 @@ export default {
       if (this.playerHandler.displayTitle) return this.playerHandler.displayTitle
       return this.mediaMetadata.title || 'No Title'
     },
+    displayAuthor() {
+      return this.playerHandler.displayAuthor || this.mediaMetadata.authorName || this.mediaMetadata.author || this.mediaMetadata.narratorName || this.authors.map((author) => author.name).join(', ')
+    },
     authors() {
       return this.mediaMetadata.authors || []
     },
@@ -277,6 +269,9 @@ export default {
   methods: {
     toggleFullscreen() {
       this.$store.commit('setPlayerIsFullscreen', !this.playerIsFullscreen)
+    },
+    openPlayerDetails() {
+      if (this.libraryItemId) this.$router.push(`/item/${this.libraryItemId}`)
     },
     selectQueueItem(item) {
       if (!item || (item.libraryItemId === this.libraryItemId && (!item.episodeId || item.episodeId === this.streamEpisode?.id))) return
